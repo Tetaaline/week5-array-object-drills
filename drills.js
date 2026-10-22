@@ -201,3 +201,99 @@ const menuPrices = Object.fromEntries(
 );
 
 console.log("19. Menu prices:", menuPrices);
+
+// Station 4 — Immutable updates
+
+// 20. Mark a pending order as delivered.
+const markDelivered = (orders, id) =>
+  orders.map((order) =>
+    order.id === id && order.status === "pending"
+      ? { ...order, status: "delivered" }
+      : order
+  );
+
+// 21. Rate an order only if it has been delivered.
+const rateOrder = (orders, id, rating) =>
+  orders.map((order) =>
+    order.id === id && order.status === "delivered"
+      ? { ...order, rating }
+      : order
+  );
+
+// 22. Update an order's nested customer district.
+const changeDistrict = (orders, id, district) =>
+  orders.map((order) =>
+    order.id === id
+      ? {
+          ...order,
+          customer: { ...order.customer, district }
+        }
+      : order
+  );
+
+// 23. Add an item to an order.
+const addItem = (orders, id, item) =>
+  orders.map((order) =>
+    order.id === id
+      ? { ...order, items: [...order.items, item] }
+      : order
+  );
+
+// 24. Remove cancelled orders.
+const removeCancelled = (orders) =>
+  orders.filter(({ status }) => status !== "cancelled");
+
+// 25. Apply a discount to every item price, rounded to the nearest
+// whole currency unit.
+const applyDiscount = (orders, percent) =>
+  orders.map((order) => ({
+    ...order,
+    items: order.items.map((item) => ({
+      ...item,
+      price: Math.round(item.price * (1 - percent / 100))
+    }))
+  }));
+
+// Test Station 4 — all results should leave the original orders unchanged.
+
+console.log(
+  "20. Mark order 105 delivered:",
+  markDelivered(orders, 105).find(({ id }) => id === 105)
+);
+
+console.log(
+  "21. Rate delivered order 101:",
+  rateOrder(orders, 101, 5).find(({ id }) => id === 101)
+);
+
+console.log(
+  "21. Rate pending order 105:",
+  rateOrder(orders, 105, 4).find(({ id }) => id === 105)
+);
+
+console.log(
+  "22. Change order 101 district:",
+  changeDistrict(orders, 101, "Kicukiro").find(({ id }) => id === 101)
+);
+
+console.log(
+  "23. Add item to order 102:",
+  addItem(orders, 102, { name: "Juice", price: 1500, qty: 1 })
+    .find(({ id }) => id === 102)
+);
+
+console.log(
+  "24. Remaining order count:",
+  removeCancelled(orders).length
+);
+
+console.log(
+  "25. Discounted order 101:",
+  applyDiscount(orders, 10).find(({ id }) => id === 101)
+);
+
+// Final immutability verification.
+console.log(
+  "Original data preserved:",
+  JSON.stringify(orders) === ORIGINAL
+);
