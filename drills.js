@@ -121,3 +121,83 @@ const ordersByStatus = orders.reduce(
 );
 
 console.log("14. Orders by status:", ordersByStatus);
+
+
+// Station 3 — Grouping and ranking
+
+// 15. Revenue per district from delivered orders.
+const revenueByDistrict = orders
+  .filter(({ status }) => status === "delivered")
+  .reduce((revenue, { customer, ...order }) => ({
+    ...revenue,
+    [customer.district]:
+      (revenue[customer.district] ?? 0) + orderTotal(order)
+  }), {});
+
+console.log("15. Revenue by district:", revenueByDistrict);
+
+// 16. Group orders by date and calculate count and revenue.
+const ordersGroupedByDate = Object.groupBy(
+  orders,
+  ({ date }) => date
+);
+
+const dailySummary = Object.entries(ordersGroupedByDate).map(
+  ([date, dailyOrders]) => ({
+    date,
+    count: dailyOrders.length,
+    revenue: dailyOrders.reduce(
+      (sum, order) => sum + orderTotal(order),
+      0
+    )
+  })
+);
+
+console.log("16. Daily summary:", dailySummary);
+
+// 17. Top 3 best-selling items by quantity.
+const itemQuantities = orders
+  .flatMap(({ items }) => items)
+  .reduce((totals, { name, qty }) => ({
+    ...totals,
+    [name]: (totals[name] ?? 0) + qty
+  }), {});
+
+const topThreeItems = Object.entries(itemQuantities)
+  .map(([name, qty]) => ({ name, qty }))
+  .toSorted((a, b) => b.qty - a.qty)
+  .slice(0, 3);
+
+console.log("17. Top 3 items:", topThreeItems);
+
+// 18. Each customer's number of orders and total spent.
+const customerSummary = orders.reduce(
+  (summary, { customer, ...order }) => {
+    const name = customer.name;
+    const existing = summary[name] ?? { name, orders: 0, spent: 0 };
+
+    return {
+      ...summary,
+      [name]: {
+        ...existing,
+        orders: existing.orders + 1,
+        spent: existing.spent + orderTotal(order)
+      }
+    };
+  },
+  {}
+);
+
+const customerRanking = Object.values(customerSummary)
+  .toSorted((a, b) => b.spent - a.spent);
+
+console.log("18. Customer ranking:", customerRanking);
+
+// 19. Menu price list, built with Object.fromEntries.
+const menuPrices = Object.fromEntries(
+  orders
+    .flatMap(({ items }) => items)
+    .map(({ name, price }) => [name, price])
+);
+
+console.log("19. Menu prices:", menuPrices);
