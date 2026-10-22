@@ -50,3 +50,74 @@ console.log(
   "Original data preserved:",
   JSON.stringify(orders) === ORIGINAL
 );
+
+
+ // Station 2 — Calculations with reduce
+
+// Helper: calculate the total price of one order.
+const orderTotal = ({ items }) =>
+  items.reduce((sum, { price, qty }) => sum + price * qty, 0);
+
+// 9. Add a total to every order without modifying the original objects.
+const ordersWithTotals = orders.map((order) => ({
+  ...order,
+  total: orderTotal(order)
+}));
+
+console.log(
+  "9. Orders with totals:",
+  ordersWithTotals.map(({ id, total }) => ({ id, total }))
+);
+
+// 10. Total revenue from delivered orders only.
+const deliveredRevenue = orders
+  .filter(({ status }) => status === "delivered")
+  .reduce((sum, order) => sum + orderTotal(order), 0);
+
+console.log("10. Delivered revenue:", deliveredRevenue);
+
+// 11. Average rating, ignoring null values, rounded to one decimal.
+const ratedOrders = orders.filter(({ rating }) => rating !== null);
+
+const averageRating = Number(
+  (
+    ratedOrders.reduce((sum, { rating }) => sum + rating, 0) /
+    ratedOrders.length
+  ).toFixed(1)
+);
+
+console.log("11. Average rating:", averageRating);
+
+// 12. Total quantity of Brochettes sold across all orders.
+const brochetteQuantity = orders
+  .flatMap(({ items }) => items)
+  .filter(({ name }) => name === "Brochette")
+  .reduce((sum, { qty }) => sum + qty, 0);
+
+console.log("12. Brochettes sold:", brochetteQuantity);
+
+// 13. The single most expensive order.
+const mostExpensiveOrder = ordersWithTotals.reduce(
+  (mostExpensive, order) =>
+    order.total > mostExpensive.total ? order : mostExpensive
+);
+
+console.log(
+  "13. Most expensive order:",
+  {
+    id: mostExpensiveOrder.id,
+    customer: mostExpensiveOrder.customer.name,
+    total: mostExpensiveOrder.total
+  }
+);
+
+// 14. Number of orders per status.
+const ordersByStatus = orders.reduce(
+  (counts, { status }) => ({
+    ...counts,
+    [status]: (counts[status] ?? 0) + 1
+  }),
+  {}
+);
+
+console.log("14. Orders by status:", ordersByStatus);
