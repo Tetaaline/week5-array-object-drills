@@ -9,18 +9,16 @@ const getOrderTotal = (order) =>
     0
   );
 
-// Select delivered orders.
+// Calculate delivered order statistics.
 const deliveredOrders = orders.filter(
   (order) => order.status === "delivered"
 );
 
-// Calculate total delivered revenue.
 const totalRevenue = deliveredOrders.reduce(
   (sum, order) => sum + getOrderTotal(order),
   0
 );
 
-// Calculate the average rating for rated delivered orders.
 const ratedOrders = deliveredOrders.filter(
   (order) => order.rating !== null
 );
@@ -34,7 +32,7 @@ const averageRating = ratedOrders.length
     )
   : 0;
 
-// Calculate the quantity sold for each menu item.
+// Calculate total quantities sold for each menu item.
 const itemQuantities = orders
   .flatMap((order) => order.items)
   .reduce((totals, item) => {
@@ -42,32 +40,85 @@ const itemQuantities = orders
     return totals;
   }, {});
 
-// Identify the best-selling item.
 const bestSellingItem = Object.entries(itemQuantities).reduce(
-  (best, current) => (current[1] > best[1] ? current : best)
+  (best, current) => current[1] > best[1] ? current : best
 )[0];
 
-// Calculate delivered revenue by district.
-const revenueByDistrict = deliveredOrders.reduce(
-  (revenue, order) => {
-    const district = order.customer.district;
+const bestSellingQuantity = itemQuantities[bestSellingItem];
 
-    revenue[district] =
-      (revenue[district] ?? 0) + getOrderTotal(order);
+// Format numbers for display.
+const formatCurrency = (amount) =>
+  `${amount.toLocaleString("en-US")} RWF`;
 
-    return revenue;
-  },
-  {}
-);
+// Render the dashboard header and summary cards.
+document.querySelector("#app").innerHTML = `
+  <main class="dashboard">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">ORDER MANAGEMENT</p>
+        <h1>Order Analytics</h1>
+        <p class="header-description">
+          Monitor revenue, customer ratings, and sales performance.
+        </p>
+      </div>
 
-// Test the calculations in the browser console.
-console.log("Total delivered revenue:", totalRevenue);
-console.log("Number of delivered orders:", deliveredOrders.length);
-console.log("Average rating:", averageRating);
-console.log("Best-selling item:", bestSellingItem);
-console.log("Revenue by district:", revenueByDistrict);
+      <div class="header-date">
+        <span class="status-dot"></span>
+        <span>October 2026</span>
+      </div>
+    </header>
 
-// Confirm that the original dataset remains unchanged.
+    <section class="summary-section" aria-labelledby="summary-title">
+      <div class="section-heading">
+        <div>
+          <h2 id="summary-title">Overview</h2>
+          <p>Your order performance at a glance.</p>
+        </div>
+        <span class="orders-count">${orders.length} total orders</span>
+      </div>
+
+      <div class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-card-top">
+            <span class="stat-label">Delivered revenue</span>
+            <span class="stat-icon revenue-icon" aria-hidden="true">$</span>
+          </div>
+          <p class="stat-value">${formatCurrency(totalRevenue)}</p>
+          <p class="stat-footnote">From completed orders</p>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-card-top">
+            <span class="stat-label">Delivered orders</span>
+            <span class="stat-icon orders-icon" aria-hidden="true">✓</span>
+          </div>
+          <p class="stat-value">${deliveredOrders.length}</p>
+          <p class="stat-footnote">Successfully completed</p>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-card-top">
+            <span class="stat-label">Average rating</span>
+            <span class="stat-icon rating-icon" aria-hidden="true">★</span>
+          </div>
+          <p class="stat-value">${averageRating}<span class="stat-unit"> / 5</span></p>
+          <p class="stat-footnote">Customer feedback</p>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-card-top">
+            <span class="stat-label">Best-selling item</span>
+            <span class="stat-icon item-icon" aria-hidden="true">↗</span>
+          </div>
+          <p class="stat-value stat-value-name">${bestSellingItem}</p>
+          <p class="stat-footnote">${bestSellingQuantity} units sold</p>
+        </article>
+      </div>
+    </section>
+  </main>
+`;
+
+// Confirm that the original dataset has not changed.
 console.assert(
   orders.length === 8,
   "Expected the original dataset to contain 8 orders."
